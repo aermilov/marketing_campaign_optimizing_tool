@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Аналитический отчёт по клиентской базе</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3, h4 {
+            color: var(--dark);
+            margin-top: 1.5em;
+        }
+        h1 { 
+            font-size: 2.2em;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 1.8em;
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+        .header-info {
+            background-color: var(--light);
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.9em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: var(--primary);
+            color: white;
+            text-align: left;
+            padding: 12px 15px;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #dddddd;
+        }
+        tr:nth-child(even) {
+            background-color: #f3f3f3;
+        }
+        tr:hover {
+            background-color: #f1f7fd;
+        }
+        .plot-container {
+            margin: 40px 0;
+            text-align: center;
+        }
+        .plot {
+            display: inline-block;
+            margin: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .plot img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        .plot-caption {
+            background-color: var(--dark);
+            color: white;
+            padding: 10px;
+            font-size: 0.9em;
+        }
+        .insight {
+            background-color: #e8f4fc;
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .recommendation {
+            background-color: #e8f8f0;
+            border-left: 5px solid var(--secondary);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .warning {
+            background-color: #fef9e7;
+            border-left: 5px solid var(--warning);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        .metric-card {
+            display: inline-block;
+            width: 22%;
+            min-width: 200px;
+            background: white;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            vertical-align: top;
+        }
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+        .metric-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .cluster-card {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        .cluster-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--light);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .cluster-title {
+            font-size: 1.4em;
+            color: var(--dark);
+            margin: 0;
+        }
+        .cluster-size {
+            background-color: var(--primary);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        .platform-row {
+            display: flex;
+            margin: 10px 0;
+            align-items: center;
+        }
+        .platform-name {
+            width: 150px;
+            font-weight: bold;
+        }
+        .platform-bar {
+            flex-grow: 1;
+            height: 30px;
+            background-color: #ecf0f1;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0 10px;
+            position: relative;
+        }
+        .platform-fill {
+            height: 100%;
+            background-color: var(--primary);
+        }
+        .platform-value {
+            width: 100px;
+            text-align: right;
+            font-family: monospace;
+        }
+        .best-platform {
+            background-color: var(--secondary);
+        }
+        .worst-platform {
+            background-color: var(--danger);
+        }
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        @media (max-width: 768px) {
+            .metric-card {
+                width: 100%;
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Аналитический отчёт по клиентской базе</h1>
+    
+    <div class="header-info">
+        <p><strong>Дата генерации:</strong> {{ date }}</p>
+        <p><strong>Период анализа:</strong> с {{ period.start }} по {{ period.end }}</p>
+        <p><strong>Общее количество клиентов:</strong> {{ metrics.total_clients }}</p>
+    </div>
+
+    <div class="section">
+        <h2>Ключевые метрики</h2>
+        
+        <div class="metric-card">
+            <div class="metric-label">Средний LTV</div>
+            <div class="metric-value">{{ metrics.avg_ltv }} ₽</div>
+            <div>Пожизненная ценность клиента</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Средняя давность</div>
+            <div class="metric-value">{{ metrics.avg_recency }} дн.</div>
+            <div>Среднее время с последней покупки</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Средняя частота</div>
+            <div class="metric-value">{{ metrics.avg_frequency }}</div>
+            <div>Покупок на клиента</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Всего клиентов</div>
+            <div class="metric-value">{{ metrics.total_clients }}</div>
+            <div>В анализируемой базе</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Сегментация клиентов</h2>
+        
+        <div class="plot-container">
+            <div class="plot">
+                {% if plots.distribution %}
+                <img src="data:image/png;base64,{{ plots.distribution }}" 
+                     alt="Распределение клиентов по кластерам"
+                     style="max-width: 800px;">
+                {% else %}
+                <img src="data:image/png;base64,{{ fallback_image }}"
+                     alt="График недоступен"
+                     style="max-width: 800px;">
+                {% endif %}
+                <div class="plot-caption">Рисунок 1. Распределение клиентов по сегментам</div>
+            </div>
+        </div>
+        
+        <div class="insight">
+            <h4>Методология кластеризации</h4>
+            <p>Клиенты были сегментированы на 4 кластера с помощью алгоритма K-means по трём ключевым показателям:</p>
+            <ol>
+                <li><strong>Recency (R)</strong> - сколько дней прошло с последней покупки</li>
+                <li><strong>Frequency (F)</strong> - частота покупок за период</li>
+                <li><strong>Monetary (M)</strong> - средняя сумма покупок</li>
+            </ol>
+            <p>Оптимальное количество кластеров было определено методом "локтя" по показателю SSE (Sum of Squared Errors).</p>
+        </div>
+        
+        {% for cluster in clusters %}
+        <div class="cluster-card">
+            <div class="cluster-header">
+                <h3 class="cluster-title">{{ cluster.name }}</h3>
+                <span class="cluster-size">{{ cluster.size }} клиентов </span>
+            </div>
+            
+            <p><strong>Характеристики:</strong> {{ cluster.description }}</p>
+            
+            <table>
+                <tr>
+                    <th>Показатель</th>
+                    <th>Значение</th>
+                    <th>Интерпретация</th>
+                </tr>
+                <tr>
+                    <td>Средняя давность (Recency)</td>
+                    <td>{{ cluster.avg_recency }} дней</td>
+                    <td>Чем меньше, тем активнее клиент</td>
+                </tr>
+                <tr>
+                    <td>Средняя частота (Frequency)</td>
+                    <td>{{ cluster.avg_frequency }} покупок</td>
+                    <td>Количество покупок за период</td>
+                </tr>
+                <tr>
+                    <td>Средний чек (Monetary)</td>
+                    <td>{{ cluster.avg_monetary }} ₽</td>
+                    <td>Средняя сумма одной транзакции</td>
+                </tr>
+                <tr>
+                    <td>Прогнозируемый LTV</td>
+                    <td>{{ cluster.avg_ltv }} ₽</td>
+                    <td>Ожидаемая прибыль от клиента</td>
+                </tr>
+            </table>
+            
+            <div class="recommendation">
+                <h4>Рекомендации по работе с сегментом:</h4>
+                <p>{{ cluster.recommendation }}</p>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div class="plot-container">
+            <div class="plot">
+                <iframe src="{{ plots.clusters }}" 
+                        width="800" 
+                        height="600" 
+                        frameborder="0"
+                        style="border: none; background: white;"
+                        style="border: none;"></iframe>
+                <div class="plot-caption">Рисунок 2. 3D-визуализация кластеров по RFM-показателям</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Эффективность рекламных платформ</h2>
+        
+        <div class="plot-container">
+            <div class="plot">
+                {% if plots.roi %}
+                <img src="data:image/png;base64,{{ plots.roi }}" 
+                     alt="ROI рекламных платформ"
+                     style="max-width: 800px;">
+                {% else %}
+                <img src="data:image/png;base64,{{ fallback_image }}"
+                     alt="График недоступен"
+                     style="max-width: 800px;">
+                {% endif %}
+                <div class="plot-caption">Рисунок 3. Сравнение ROI по платформам</div>
+            </div>
+        </div>
+        
+        <div class="insight">
+            <h4>Методология расчёта ROI</h4>
+            <p>ROI (Return on Investment) рассчитывается по формуле:</p>
+            <p><strong>ROI = (Доход - Расход) / Расход × 100%</strong></p>
+            <p>Где:</p>
+            <ul>
+                <li><strong>Доход</strong> - сумма всех покупок, совершенных клиентами, привлеченными с данной платформы</li>
+                <li><strong>Расход</strong> - общие затраты на рекламу в данной платформе</li>
+            </ul>
+        </div>
+        
+        <h3>Сравнение платформ</h3>
+        
+        {% for platform in platforms.platforms %}
+        <div class="platform-row {% if platform.platform == platforms.best.platform %}best-platform{% endif %} {% if platform.platform == platforms.worst.platform %}worst-platform{% endif %}">
+            <div class="platform-name">{{ platform.platform }}</div>
+            <div class="platform-bar">
+                <div class="platform-fill" style="width: {{ (platform.roi / platforms.best.roi * 100)|round(1) }}%"></div>
+            </div>
+            <div class="platform-value">
+                ROI: {{ platform.roi }} | 
+                Доход: {{ platform.revenue }} ₽ | 
+                Расход: {{ platform.spend }} ₽
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="section">
+        <h2>Прогнозирование прибыли</h2>
+    
+        <div class="plot-container">
+            <div class="plot">
+                {% if plots.profit_forecast %}
+                <img src="data:image/png;base64,{{ plots.profit_forecast }}" 
+                     alt="Прогноз прибыли"
+                     style="max-width: 800px;">
+                {% else %}
+                <div class="plot-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>График прогноза недоступен</p>
+                </div>
+                {% endif %}
+                <div class="plot-caption">Рисунок 4. Сравнение прогнозных моделей</div>
+            </div>
+        </div>
+        
+        <div class="insight">
+            <h4>Методология прогнозирования</h4>
+            <p>Прогноз построен с использованием двух независимых методов:</p>
+            <ul>
+                <li><strong>🔵 Синяя линия</strong> - исторические данные о прибыли</li>
+                <li><strong>🔴 Красный пунктир</strong> - Exponential Smoothing (учет тренда и сезонности)</li>
+                <li><strong>🟢 Зеленый пунктир</strong> - Random Forest (анализ комплексных зависимостей)</li>
+            </ul>
+            <p>Совпадение прогнозов увеличивает надежность, расхождения указывают на сложные паттерны в данных.</p>
+        </div>
+        
+        <div class="recommendation">
+            <h4>Рекомендации по использованию:</h4>
+            <ul>
+                <li>Для консервативного планирования используйте минимальный из двух прогнозов</li>
+                <li>При расхождении моделей более чем на 15% проанализируйте причины аномалий</li>
+                <li>Обновляйте прогноз ежеквартально с учетом новых данных</li>
+            </ul>
+        </div>
+    </div>
+    <footer>
+        <p>Отчёт сгенерирован автоматически системой анализа клиентской базы</p>
+        <p>© {{ date.split('-')[0] }} Маркетинговый аналитический инструмент</p>
+    </footer>
+</body>
+</html>
