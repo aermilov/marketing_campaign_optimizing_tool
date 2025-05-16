@@ -22,3 +22,5 @@ def calculate_rfm():
 
 if __name__ == '__main__':
     calculate_rfm()
+
+    

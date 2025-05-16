@@ -7,10 +7,8 @@ from pathlib import Path
 def calculate_ltv():
     project_root = Path(__file__).parent.parent.parent
     clusters_path = project_root / 'data' / 'processed' / 'clusters.csv'
-    rfm_path = project_root / 'data' / 'processed' / 'rfm_data.csv'
     
     clusters = pd.read_csv(clusters_path)
-    rfm = pd.read_csv(rfm_path)
 
     clusters['predicted_ltv'] = (clusters['monetary'] * clusters['frequency'] * 12)\
           / (1 + clusters['recency']/30)
